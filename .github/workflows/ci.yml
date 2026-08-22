@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile all scripts
+        run: python3 -m py_compile scripts/bench.py scripts/bench_lms.py scripts/quality_v2.py
+      - name: Unit tests (no engine required)
+        run: python3 -m unittest discover -s tests -v
