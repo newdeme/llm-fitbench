@@ -2,6 +2,14 @@
 
 本项目的所有显著变更都记录在此文件中。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.0] - 2026-08-22
+
+### Changed
+
+- **题库外置重构（不兼容变更）**：`quality_v2.py` 不再内嵌私人题库——真实题库全部为独立 JSON 文件（`--bank` 指定），脚本只内置 6 题中性演示题库（仅验证链路）。遥感科研 72 题移至 `examples/remote-sensing-researcher/bank.json`。
+- 新增 `--limit N`（只跑前 N 题，冒烟用）。
+- 结果文件名含题库名，便于多题库区分。
+
 ## [0.1.0] - 2026-08-22
 
 ### Added

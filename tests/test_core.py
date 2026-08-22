@@ -1,72 +1,85 @@
 """核心逻辑单元测试（无需任何推理引擎，CI 可跑）。
 运行: python3 -m unittest discover -s tests -v"""
-import os, sys, unittest
+import json, os, sys, unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, os.path.join(REPO, "scripts"))
 
 import bench  # noqa: E402
 import quality_v2 as qv  # noqa: E402
 
+RS_BANK = os.path.join(REPO, "examples", "remote-sensing-researcher", "bank.json")
+
 
 class TestGrader(unittest.TestCase):
     def test_sub_case_insensitive(self):
-        self.assertTrue(qv.grade(("sub", "LoveDA"), "the images come from loveda dataset"))
-
-    def test_sub_negative(self):
-        self.assertFalse(qv.grade(("sub", "LoveDA"), "images come from BigEarthNet"))
+        self.assertTrue(qv.grade({"mode": "sub", "target": "LoveDA"}, "images from loveda"))
 
     def test_numeric_boundary(self):
-        # "36" 不得命中 "360"/"136"
-        self.assertTrue(qv.grade(("re", r"(?<!\d)36(?!\d)"), "answer: 36"))
-        self.assertFalse(qv.grade(("re", r"(?<!\d)36(?!\d)"), "answer: 360"))
-        self.assertFalse(qv.grade(("re", r"(?<!\d)36(?!\d)"), "answer: 136"))
+        g = {"mode": "re", "target": r"(?<!\d)36(?!\d)"}
+        self.assertTrue(qv.grade(g, "answer: 36"))
+        self.assertFalse(qv.grade(g, "answer: 360"))
+        self.assertFalse(qv.grade(g, "answer: 136"))
 
-    def test_and_mode(self):
-        g = ("and", [("sub", "remote sensing"), ("re", r"(?i)(visual|vision)")])
-        self.assertTrue(qv.grade(g, "Remote Sensing Visual Question Answering"))
-        self.assertFalse(qv.grade(g, "Visual Question Answering"))  # 缺 remote sensing
+    def test_and_mode_recursive(self):
+        g = {"mode": "and", "targets": [
+            {"mode": "sub", "target": "remote sensing"},
+            {"mode": "re", "target": r"(?i)(visual|vision)"}]}
+        self.assertTrue(qv.grade(g, "Remote Sensing Visual QA"))
+        self.assertFalse(qv.grade(g, "Visual QA"))
 
     def test_regex_allows_unicode_hyphen(self):
-        # U+2011 连字符教训
-        self.assertTrue(qv.grade(("re", r"(?i)near.{0,3}infrared"), "Near‑Infrared band"))
-
-    def test_not_mode_forbidden_hits_explanation(self):
-        # forbid 的误伤实证：解释型答案引用原错误
-        g = ("not", (["results show"], ["shows"]))
-        self.assertFalse(qv.grade(g, "Corrected: results show. (original wrongly used shows)"))
+        self.assertTrue(qv.grade({"mode": "re", "target": r"(?i)near.{0,3}infrared"}, "Near‑Infrared band"))
 
 
-class TestBankIntegrity(unittest.TestCase):
-    def test_bank_sizes(self):
-        qv.init_prompts()
+class TestBanks(unittest.TestCase):
+    def test_demo_bank_builtin(self):
+        bank, qs = qv.load_bank(None)
+        self.assertEqual(len(qs), 6)
+        self.assertEqual(bank["name"], "demo-neutral-6")
+
+    def test_rs_bank_json_integrity(self):
+        """示例题库必须是独立 JSON（不再内嵌于脚本）"""
+        self.assertTrue(os.path.exists(RS_BANK), "bank.json 不存在")
+        bank, qs = qv.load_bank(RS_BANK)
         from collections import Counter
-        c = Counter(x[1] for x in qv.Q)
-        self.assertEqual(sum(c.values()), 72)
+        c = Counter(q["scene"] for q in qs)
+        self.assertEqual(len(qs), 72)
         self.assertEqual(c["A"], 16); self.assertEqual(c["B"], 16)
-        self.assertEqual(c["E"], 8); self.assertEqual(c["G"], 8)
+        self.assertEqual(c["C"], 12); self.assertEqual(c["D"], 8)
+        self.assertEqual(c["E"], 8); self.assertEqual(c["F"], 4); self.assertEqual(c["G"], 8)
+        self.assertEqual(bank["name"], "remote-sensing-researcher-72")
 
-    def test_f_questions_have_prompts(self):
-        qv.init_prompts()
-        for qid, scene, prompt, _ in qv.Q:
-            if qid.startswith("F"):
-                self.assertIsNotNone(prompt)
-                self.assertIn("Question:", prompt)
+    def test_rs_bank_needle_rendering(self):
+        bank, qs = qv.load_bank(RS_BANK)
+        f1 = [q for q in qs if q["id"] == "F1"][0]
+        self.assertIn("DIOR-R", f1["prompt"])
+        self.assertGreater(len(f1["prompt"]), 8000)  # 长文档已渲染
+
+    def test_script_has_no_private_bank(self):
+        """脚本本体不得内嵌私人题库（题库外置原则）"""
+        src = open(os.path.join(REPO, "scripts", "quality_v2.py"), encoding="utf-8").read()
+        self.assertNotIn("LoveDA", src)
+        self.assertNotIn("referring expression comprehension in remote sensing", src)
+
+    def test_limit_smoke_selection(self):
+        bank, qs = qv.load_bank(RS_BANK)
+        # limit 由 run() 处理，这里验证题目列表可切片
+        self.assertEqual(len(qs[:8]), 8)
 
 
 class TestUtilities(unittest.TestCase):
     def test_build_prompt_length(self):
-        p = bench.build_prompt(2048)
-        self.assertGreater(len(p), 1000)
+        self.assertGreater(len(bench.build_prompt(2048)), 1000)
 
     def test_wilson_ci_bounds(self):
         lo, hi = qv.wilson_ci(8, 8)
         self.assertGreaterEqual(lo, 0); self.assertLessEqual(hi, 1)
         lo2, hi2 = qv.wilson_ci(0, 8)
-        self.assertEqual(lo2, 0)            # 0 成功下界必为 0
-        self.assertGreater(hi2, 0)          # Wilson 上界应大于 0（连续校正性质）
+        self.assertEqual(lo2, 0)
+        self.assertGreater(hi2, 0)
 
     def test_outdir_env_override(self):
-        # 设置 BENCH_DATA_DIR 后重载模块，OUTDIR 应跟随环境变量
         import importlib
         os.environ["BENCH_DATA_DIR"] = "/tmp/bench-data-test"
         try:

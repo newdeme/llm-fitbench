@@ -51,13 +51,20 @@ python3 scripts/bench.py quality -m 你的模型:tag
 
 ## 场景化质量评测（quality_v2）
 
-通用跑分测不出"适不适合你"。`scripts/quality_v2.py` 内置一套**遥感科研工作者六场景 72 题示例**（学术写作纠错 / DL 代码知识 / 领域事实+幻觉探针 / 术语翻译 / 实验数值分析 / 长文事实检索），每题确定性判分。
+通用跑分测不出“适不适合你”。`scripts/quality_v2.py` 通过**外置题库 JSON**（`--bank`）评测你的真实工作负载；脚本本体只内置 6 题中性演示题库（验证链路用）。
 
-**换成你自己的题库**：题库就是脚本顶部的一个 Python 列表——复制脚本、替换题目列表即可。模板与判分指南：[examples/question-bank-template.md](examples/question-bank-template.md)。
+仓库自带一个完整示例题库：**遥感科研工作者六场景 72 题**（学术写作纠错 / DL 代码知识 / 领域事实+幻觉探针 / 术语翻译 / 实验数值分析 / 长文事实检索），每题确定性判分。
+
+**换成你自己的题库**：题库就是一个 JSON 文件，改 JSON 即可，不需要懂 Python。模板与判分指南：[examples/question-bank-template.md](examples/question-bank-template.md)。
 
 ```bash
-python3 scripts/quality_v2.py ollama -m 模型 --np 512          # 场景剖面 + 95% CI
-python3 scripts/quality_v2.py ollama -m 模型 --no-think        # thinking 模型关思考对照
+# 用示例题库
+python3 scripts/quality_v2.py ollama -m 模型 --bank examples/remote-sensing-researcher/bank.json
+# 用你自己的题库
+python3 scripts/quality_v2.py ollama -m 模型 --bank my-bank.json --np 512
+# thinking 模型关思考对照 / 冒烟
+python3 scripts/quality_v2.py ollama -m 模型 --bank my-bank.json --no-think
+python3 scripts/quality_v2.py ollama -m 模型 --bank my-bank.json --limit 4
 ```
 
 ## 数据隐私

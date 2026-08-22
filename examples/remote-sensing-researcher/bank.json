@@ -1,0 +1,903 @@
+{
+ "name": "remote-sensing-researcher-72",
+ "scenes": {
+  "A": {
+   "name": "学术写作",
+   "weight": 1
+  },
+  "B": {
+   "name": "DL代码",
+   "weight": 1
+  },
+  "C": {
+   "name": "遥感领域",
+   "weight": 0.5
+  },
+  "D": {
+   "name": "学术翻译",
+   "weight": 1
+  },
+  "E": {
+   "name": "实验分析",
+   "weight": 1
+  },
+  "F": {
+   "name": "长文检索",
+   "weight": 1
+  },
+  "G": {
+   "name": "通用底噪",
+   "weight": 0.5
+  }
+ },
+ "haystack": [
+  "EarthVQA is a remote sensing visual question answering benchmark developed by Wuhan University's RSIDEA lab. It emphasizes relational reasoning: questions require understanding spatial relations, object attributes, and scene context rather than simple object presence. The images originate from the LoveDA dataset, covering urban and rural areas in China. The training pipeline is two-stage: an SFPN segmentation model first produces semantic masks and segmentation features, then the SOBA module performs answer prediction grounded on those features. Evaluation uses overall accuracy for classification-type questions and RMSE for counting-type questions, including 'Basic Counting' and 'Reasoning-based Counting'.",
+  "Oriented bounding box detection is a core task in aerial image analysis. In mmrotate, a rotated box is parameterized as (x_ctr, y_ctr, w, h, angle). Three angle conventions coexist: le90 restricts the angle to [-pi/2, pi/2), le135 to [-3*pi/4, pi/4), and oc (OpenCV convention) to [0, pi/2). DOTA labels store objects as eight-coordinate polygons (x1,y1,...,x4,y4) plus class and difficulty. Converting polygons to rotated boxes uses poly2obb with one of the conventions. Angle ambiguity is a known source of label inconsistency in DOTA.",
+  "Transfer learning and parameter-efficient methods are widely adopted in remote sensing multimodal research. LoRA freezes backbone weights and injects trainable low-rank matrices into attention projections. CLIP-style contrastive alignment maps images and text into a shared embedding space, enabling zero-shot transfer to remote sensing classification tasks. For referring expression comprehension, models must localize the described region, evaluated by Acc@0.5, meaning the predicted box counts as correct when its IoU with ground truth reaches 0.5."
+ ],
+ "needles": {
+  "N1": {
+   "text": "DIOR-R",
+   "answer": "In the second-stage ablation, the referring comprehension branch was additionally validated on the DIOR-R dataset with 17,547 referring expression samples. "
+  },
+  "N2": {
+   "text": "83.7",
+   "answer": "The relational reasoning module improved overall accuracy on EarthVQA from 81.9 to 83.7 percent. "
+  },
+  "N3": {
+   "text": "single-stage",
+   "answer": "During reproduction, the team replaced the original two-stage pipeline with a single-stage variant for speed comparison. "
+  },
+  "N4": {
+   "text": "RSVQA-LR",
+   "answer": "A separate pilot experiment was conducted on the RSVQA-LR subset before scaling to the full dataset. "
+  }
+ },
+ "questions": [
+  {
+   "id": "A1",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "results show"
+   },
+   "prompt": "Rewrite this sentence correctly (academic English): \"The experiment results shows our method outperform the baseline in term of accuracy.\""
+  },
+  {
+   "id": "A2",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "effectiveness"
+   },
+   "prompt": "Rewrite correctly: \"We conduct extensive experiments to prove the effectively of our approach.\""
+  },
+  {
+   "id": "A3",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "achieves"
+   },
+   "prompt": "Rewrite correctly: \"Compared with the baseline method, our method achieve a better performance.\""
+  },
+  {
+   "id": "A4",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "contains"
+   },
+   "prompt": "Rewrite correctly: \"The dataset contain 10,000 remote sensing images, which is divided into training and test set.\""
+  },
+  {
+   "id": "A5",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "remote sensing images"
+   },
+   "prompt": "Fix the terminology error: \"Our model uses a convolution neural network to extract visual features from the sensing images.\"  Give the corrected phrase for the image type."
+  },
+  {
+   "id": "A6",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "are better"
+   },
+   "prompt": "Rewrite correctly: \"As shown in Table 2, we can see that the results of the proposed method is better than others.\""
+  },
+  {
+   "id": "A7",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "proposes"
+   },
+   "prompt": "Rewrite correctly: \"This paper propose a novel framework for referring expression comprehension in remote sensing scenario.\""
+  },
+  {
+   "id": "A8",
+   "scene": "A",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)features.{0,40}(are fed|fed into)"
+   },
+   "prompt": "Rewrite correctly: \"The feature extracted by the backbone are fed into the fusion module.\""
+  },
+  {
+   "id": "A9",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "datasets"
+   },
+   "prompt": "Rewrite correctly: \"In order to verify the generalization ability, we also evaluate our method on three different dataset.\""
+  },
+  {
+   "id": "A10",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "results demonstrate"
+   },
+   "prompt": "Rewrite correctly: \"Experimental results demonstrates that our approach outperforms state-of-the-art methods.\""
+  },
+  {
+   "id": "A11",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "study shows"
+   },
+   "prompt": "Rewrite correctly: \"The ablation study show the contribution of each component.\""
+  },
+  {
+   "id": "A12",
+   "scene": "A",
+   "grader": {
+    "mode": "sub",
+    "target": "baselines"
+   },
+   "prompt": "Rewrite correctly: \"We compared our method with several baseline, including CLIP and BLIP.\""
+  },
+  {
+   "id": "A13",
+   "scene": "A",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)(alleviat|mitigat|address|improv|partial|considerabl)"
+   },
+   "prompt": "A reviewer flags this as over-claiming. Rewrite with appropriate academic hedging: \"Our method completely solves the problem of small object detection in remote sensing images.\""
+  },
+  {
+   "id": "A14",
+   "scene": "A",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)(various|several|multiple|certain|specific|limited|demonstrat|indicat)"
+   },
+   "prompt": "A reviewer flags over-claimed generality. Rewrite with proper scope: \"Experiments prove that our method is universally applicable to all remote sensing scenarios.\""
+  },
+  {
+   "id": "A15",
+   "scene": "A",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)\\b(do not|does not)\\b"
+   },
+   "prompt": "Rewrite in formal academic style (no contractions, precise wording): \"The model doesn't converge when the LR is too big, so we don't use it in the final version.\""
+  },
+  {
+   "id": "A16",
+   "scene": "A",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)(competitive|comparable|on par|strong|favorable)"
+   },
+   "prompt": "A reviewer asks to avoid unsupported superlatives. Rewrite: \"Our results are the best ever achieved on this task.\""
+  },
+  {
+   "id": "B1",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "accuracy"
+     },
+     {
+      "mode": "sub",
+      "target": "RMSE"
+     }
+    ]
+   },
+   "prompt": "In the EarthVQA repository, which two metric types are used to evaluate the VQA model? (name the two metric kinds)"
+  },
+  {
+   "id": "B2",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "memory"
+   },
+   "prompt": "In the EarthVQA evaluation code, evaluation runs inside `with torch.no_grad():`. What is the main reason for this?"
+  },
+  {
+   "id": "B3",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "segmentation"
+     },
+     {
+      "mode": "sub",
+      "target": "feature"
+     }
+    ]
+   },
+   "prompt": "In EarthVQA's training pipeline, what does the first stage train (SFPN) and what does it produce for the second stage (SOBA)? Answer briefly."
+  },
+  {
+   "id": "B4",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "x"
+     },
+     {
+      "mode": "sub",
+      "target": "angle"
+     }
+    ]
+   },
+   "prompt": "In mmrotate, what are the five parameters of an oriented bounding box (OBB)?"
+  },
+  {
+   "id": "B5",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "90"
+     },
+     {
+      "mode": "sub",
+      "target": "180"
+     }
+    ]
+   },
+   "prompt": "In mmrotate, poly2obb has le90 and oc conventions. What is the difference in angle range between le90 and oc?"
+  },
+  {
+   "id": "B6",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "polygon"
+   },
+   "prompt": "In the DOTA dataset label format, how are objects annotated (what geometry representation)?"
+  },
+  {
+   "id": "B7",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "optimizer.step"
+   },
+   "prompt": "This PyTorch training code has a bug. Find it and name the missing/incorrect statement:\n```python\nfor img, target in train_loader:\n    optimizer.zero_grad()\n    output = model(img)\n    loss = criterion(output, target)\n    loss.backward()\n```"
+  },
+  {
+   "id": "B8",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "cpu"
+     },
+     {
+      "mode": "sub",
+      "target": "numpy"
+     }
+    ]
+   },
+   "prompt": "This evaluation code will crash. Why?\n```python\npreds = model(img)\nans_idx = preds.argmax(dim=1).numpy()\n``` (preds is a CUDA tensor)"
+  },
+  {
+   "id": "B9",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "inherit"
+   },
+   "prompt": "In mmrotate config files, what does the `_base_` key do?"
+  },
+  {
+   "id": "B10",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "counting"
+   },
+   "prompt": "In EarthVQA's repo, evaluation uses Count_RMSE_Metric. Which question types does it cover?"
+  },
+  {
+   "id": "B11",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "compatib"
+   },
+   "prompt": "Why does the EarthVQA README pin `albumentations==1.4.3` with the comment 'This version is important'?"
+  },
+  {
+   "id": "B12",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "Dropout"
+     },
+     {
+      "mode": "sub",
+      "target": "BatchNorm"
+     }
+    ]
+   },
+   "prompt": "During training, model.train() vs model.eval() - what behavior differences does eval() disable that affect results?"
+  },
+  {
+   "id": "B13",
+   "scene": "B",
+   "grader": {
+    "mode": "sub",
+    "target": "register"
+   },
+   "prompt": "EarthVQA train_earthvqa.py calls `er.registry.register_all()`. In the `ever` framework, what is the purpose of a registry?"
+  },
+  {
+   "id": "B14",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "shuffle"
+     },
+     {
+      "mode": "sub",
+      "target": "order"
+     }
+    ]
+   },
+   "prompt": "A dataloader in a training script uses `shuffle=False` for the train split. What problem can this cause?"
+  },
+  {
+   "id": "B15",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "index"
+     },
+     {
+      "mode": "sub",
+      "target": "str"
+     }
+    ]
+   },
+   "prompt": "In EarthVQA code, `convert2str(indexes, map_dict=EarthVQADataset.QUESTION_VOC)` converts what to what?"
+  },
+  {
+   "id": "B16",
+   "scene": "B",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "angle"
+     },
+     {
+      "mode": "sub",
+      "target": "period"
+     }
+    ]
+   },
+   "prompt": "mmrotate rotated boxes use (x_ctr,y_ctr,w,h,angle). Why can the same physical box have multiple valid (w,h,angle) combinations? Name the ambiguity."
+  },
+  {
+   "id": "C1",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "LoveDA"
+   },
+   "prompt": "The EarthVQA images come from which existing remote sensing dataset? (name it)"
+  },
+  {
+   "id": "C2",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "relational reasoning"
+   },
+   "prompt": "What is the core reasoning capability that EarthVQA emphasizes beyond simple object presence? (two words)"
+  },
+  {
+   "id": "C3",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "urban"
+     },
+     {
+      "mode": "sub",
+      "target": "rural"
+     }
+    ]
+   },
+   "prompt": "LoveDA covers two area types. Name them."
+  },
+  {
+   "id": "C4",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "detection"
+     },
+     {
+      "mode": "sub",
+      "target": "rotat"
+     }
+    ]
+   },
+   "prompt": "What task is the DOTA dataset designed for? (object detection variant)"
+  },
+  {
+   "id": "C5",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "IoU"
+     },
+     {
+      "mode": "sub",
+      "target": "0.5"
+     }
+    ]
+   },
+   "prompt": "In referring expression comprehension (REC), what is the standard evaluation criterion? (metric name + threshold)"
+  },
+  {
+   "id": "C6",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "contrastive"
+   },
+   "prompt": "CLIP trains image and text encoders with what training objective?"
+  },
+  {
+   "id": "C7",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "freeze"
+     },
+     {
+      "mode": "sub",
+      "target": "low-rank"
+     }
+    ]
+   },
+   "prompt": "What does LoRA freeze and what does it train?"
+  },
+  {
+   "id": "C8",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "RMSE"
+   },
+   "prompt": "In the EarthVQA benchmark, counting-type questions are evaluated with which regression metric?"
+  },
+  {
+   "id": "C9",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "visual"
+     },
+     {
+      "mode": "sub",
+      "target": "question"
+     },
+     {
+      "mode": "sub",
+      "target": "answering"
+     }
+    ]
+   },
+   "prompt": "Name the 6-digit-class core problem EarthVQA addresses: remote sensing ___ ___ ___ (three words, the task name)."
+  },
+  {
+   "id": "C10",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "EarthVL"
+   },
+   "prompt": "The EarthVQA dataset originates from images of China in LoveDA; in 2026 the authors extended it globally under what new dataset name?"
+  },
+  {
+   "id": "C11",
+   "scene": "C",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "overall"
+     },
+     {
+      "mode": "sub",
+      "target": "accuracy"
+     }
+    ]
+   },
+   "prompt": "In EarthVQA evaluation, what does 'OA' stand for and what does it measure?"
+  },
+  {
+   "id": "C12",
+   "scene": "C",
+   "grader": {
+    "mode": "sub",
+    "target": "horizontal"
+   },
+   "prompt": "For aerial rotated object detection, give the standard term for boxes whose edges align with image axes (not rotated)."
+  },
+  {
+   "id": "D1",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "re",
+      "target": "(?i)(visual|vision)[^a-z]{0,3}question[- ]answering"
+     },
+     {
+      "mode": "sub",
+      "target": "remote sensing"
+     }
+    ]
+   },
+   "prompt": "Translate to academic English, terminology must be exact: 遥感视觉问答"
+  },
+  {
+   "id": "D2",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "rotat"
+     },
+     {
+      "mode": "sub",
+      "target": "object detection"
+     }
+    ]
+   },
+   "prompt": "Translate: 遥感影像中的旋转框目标检测"
+  },
+  {
+   "id": "D3",
+   "scene": "D",
+   "grader": {
+    "mode": "sub",
+    "target": "referring expression comprehension"
+   },
+   "prompt": "Translate: 指代表达理解（定位描述所指目标）"
+  },
+  {
+   "id": "D4",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "relational reasoning"
+     },
+     {
+      "mode": "sub",
+      "target": "scene"
+     }
+    ]
+   },
+   "prompt": "Translate: 基于关系推理的场景理解"
+  },
+  {
+   "id": "D5",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "small object"
+     },
+     {
+      "mode": "sub",
+      "target": "detection"
+     }
+    ]
+   },
+   "prompt": "Translate: 遥感小目标检测"
+  },
+  {
+   "id": "D6",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "modality"
+     },
+     {
+      "mode": "sub",
+      "target": "align"
+     }
+    ]
+   },
+   "prompt": "Translate: 图像与文本的模态对齐"
+  },
+  {
+   "id": "D7",
+   "scene": "D",
+   "grader": {
+    "mode": "and",
+    "targets": [
+     {
+      "mode": "sub",
+      "target": "zero-shot"
+     },
+     {
+      "mode": "sub",
+      "target": "generaliz"
+     }
+    ]
+   },
+   "prompt": "Translate: 零样本泛化能力"
+  },
+  {
+   "id": "D8",
+   "scene": "D",
+   "grader": {
+    "mode": "sub",
+    "target": "localization accuracy"
+   },
+   "prompt": "Translate: 定位精度"
+  },
+  {
+   "id": "E1",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)2\\.0(?!\\d)"
+   },
+   "prompt": "Baseline mAP is 69.8, ours is 71.2. What is the RELATIVE improvement in percent? (one number)"
+  },
+  {
+   "id": "E2",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)2\\.6(?!\\d)"
+   },
+   "prompt": "OA improves from 81.9 to 84.5. What is the absolute gain in percentage points? (one number)"
+  },
+  {
+   "id": "E3",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)21\\.2(?!\\d)"
+   },
+   "prompt": "RMSE decreases from 15.6 to 12.3. What is the percentage decrease? (one decimal)"
+  },
+  {
+   "id": "E4",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)13\\.3(?!\\d)"
+   },
+   "prompt": "Params drop from 113M to 98M. What is the percentage reduction? (one decimal)"
+  },
+  {
+   "id": "E5",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "5\\s*[eE×x*-]*\\s*10?\\^?|-?4|0\\.0005"
+   },
+   "prompt": "Linear warmup from 0 to 1e-3 over 500 steps. What is the LR at step 250? (scientific or decimal)"
+  },
+  {
+   "id": "E6",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)21\\.3(?!\\d)"
+   },
+   "prompt": "Inference speed is 12 images/s. How many seconds for 256 images? (one decimal)"
+  },
+  {
+   "id": "E7",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)7\\.5(?!\\d)"
+   },
+   "prompt": "Training 40 epochs took 5 hours. At the same rate, how many hours for 60 epochs? (one decimal)"
+  },
+  {
+   "id": "E8",
+   "scene": "E",
+   "grader": {
+    "mode": "re",
+    "target": "(?i)increase|longer|slower"
+   },
+   "prompt": "Batch size reduced from 32 to 16, dataset unchanged. In one word, what typically happens to total training time? (direction)"
+  },
+  {
+   "id": "F1",
+   "scene": "F",
+   "grader": {
+    "mode": "sub",
+    "target": "DIOR-R"
+   },
+   "needle": "N1",
+   "question": "Which dataset was used for the referring comprehension branch validation in the second-stage ablation?"
+  },
+  {
+   "id": "F2",
+   "scene": "F",
+   "grader": {
+    "mode": "sub",
+    "target": "83.7"
+   },
+   "needle": "N2",
+   "question": "What overall accuracy did the relational reasoning module reach on EarthVQA?"
+  },
+  {
+   "id": "F3",
+   "scene": "F",
+   "grader": {
+    "mode": "sub",
+    "target": "single-stage"
+   },
+   "needle": "N3",
+   "question": "What pipeline variant did the team use for the speed comparison during reproduction?"
+  },
+  {
+   "id": "F4",
+   "scene": "F",
+   "grader": {
+    "mode": "sub",
+    "target": "RSVQA-LR"
+   },
+   "needle": "N4",
+   "question": "On which subset was the separate pilot experiment conducted?"
+  },
+  {
+   "id": "G1",
+   "scene": "G",
+   "grader": {
+    "mode": "sub",
+    "target": "yes"
+   },
+   "prompt": "If all Bloops are Razzles and all Razzles are Lazzles, are all Bloops Lazzles? yes/no only."
+  },
+  {
+   "id": "G2",
+   "scene": "G",
+   "grader": {
+    "mode": "re",
+    "target": "\\bFriday\\b"
+   },
+   "prompt": "If today is Wednesday, what weekday is it 9 days from now? Day name only."
+  },
+  {
+   "id": "G3",
+   "scene": "G",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)36(?!\\d)"
+   },
+   "prompt": "What is 15% of 240? Number only."
+  },
+  {
+   "id": "G4",
+   "scene": "G",
+   "grader": {
+    "mode": "sub",
+    "target": "22.5"
+   },
+   "prompt": "What is the average of 12, 18, 24, 36? Decimal only."
+  },
+  {
+   "id": "G5",
+   "scene": "G",
+   "grader": {
+    "mode": "sub",
+    "target": "car"
+   },
+   "prompt": "Odd one out: dog, cat, elephant, car? Item only."
+  },
+  {
+   "id": "G6",
+   "scene": "G",
+   "grader": {
+    "mode": "re",
+    "target": "\\bAu\\b"
+   },
+   "prompt": "Chemical symbol of gold?"
+  },
+  {
+   "id": "G7",
+   "scene": "G",
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)1945(?!\\d)"
+   },
+   "prompt": "Year WWII ended?"
+  },
+  {
+   "id": "G8",
+   "scene": "G",
+   "grader": {
+    "mode": "re",
+    "target": "\\bJupiter\\b"
+   },
+   "prompt": "Largest planet in the Solar System?"
+  }
+ ]
+}

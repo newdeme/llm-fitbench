@@ -71,7 +71,7 @@ LM Studio 用 `bench_lms.py`（同五子命令，OpenAI 兼容流式自测 TTFT/
 6. **对抗植入定律**：主动构造幻觉探针，测"编造 vs 拒答"的品格，单独成轴报告。
 7. **真实预算定律**：以真实使用预算测试；thinking 预算饥饿是成本不是噪声；3 倍预算复测区分"不会"与"没答完"。
 
-题库模板见 `examples/question-bank-template.md`；完整示例（遥感科研工作者六场景 72 题）内置在 `scripts/quality_v2.py`，说明见 `examples/remote-sensing-researcher/`。
+题库模板见 `examples/question-bank-template.md`；完整示例（遥感科研工作者六场景 72 题）：`examples/remote-sensing-researcher/bank.json`（独立 JSON，`--bank` 加载，脚本本体不含真实题库）。
 
 ## 6. 裁决矩阵（P6）
 

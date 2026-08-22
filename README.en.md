@@ -49,9 +49,20 @@ See [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 ## Workload-scenario quality evaluation (quality_v2)
 
-Generic benchmarks can't tell whether a model fits *you*. `scripts/quality_v2.py` ships with a 72-question, six-scenario example bank for a remote-sensing researcher (academic writing fixes / DL code knowledge / domain facts + hallucination probes / terminology translation / experiment number analysis / long-doc fact retrieval), all deterministically graded.
+Generic benchmarks can't tell whether a model fits *you*. `scripts/quality_v2.py` evaluates your real workload via **external question-bank JSON files** (`--bank`); the script itself ships only a 6-question neutral demo bank.
 
-**Bring your own bank**: the bank is just a Python list at the top of the script — copy the script, replace the list. Template: [examples/question-bank-template.md](examples/question-bank-template.md).
+A complete example bank is included: **72 questions across six scenarios for a remote-sensing researcher** (academic writing fixes / DL code knowledge / domain facts + hallucination probes / terminology translation / experiment number analysis / long-doc fact retrieval), all deterministically graded.
+
+**Bring your own bank**: it's just a JSON file — no Python knowledge required. Template: [examples/question-bank-template.md](examples/question-bank-template.md).
+
+```bash
+# with the example bank
+python3 scripts/quality_v2.py ollama -m model --bank examples/remote-sensing-researcher/bank.json
+# your own bank / thinking-off control / smoke
+python3 scripts/quality_v2.py ollama -m model --bank my-bank.json --np 512
+python3 scripts/quality_v2.py ollama -m model --bank my-bank.json --no-think
+python3 scripts/quality_v2.py ollama -m model --bank my-bank.json --limit 4
+```
 
 ## Privacy
 

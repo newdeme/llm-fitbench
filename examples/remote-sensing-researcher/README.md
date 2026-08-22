@@ -1,6 +1,6 @@
 # 示例题库：遥感科研工作者（remote-sensing-researcher）
 
-内置在 `scripts/quality_v2.py`（72 题，无需额外文件）。本目录说明其设计与出处，供替换为你自己的领域时参考。
+题库文件：[bank.json](bank.json)（remote-sensing-researcher-72，72 题，独立 JSON，`--bank` 加载；脚本本体不含任何真实题库）。本目录说明其设计与出处，供替换为你自己的领域时参考。
 
 ## 场景与配额
 
@@ -27,4 +27,4 @@
 
 ## 换领域指南
 
-见 [../question-bank-template.md](../question-bank-template.md)。核心动作：列你的场景清单 → 从你的真实材料核实 key → 冒烟 → 双挂审计 → 场景剖面报告。
+见 [../question-bank-template.md](../question-bank-template.md)。核心动作：列你的场景清单 → 从你的真实材料核实 key → 写 bank.json → 冒烟 `--limit 4` → 双挂审计 → 场景剖面报告。
