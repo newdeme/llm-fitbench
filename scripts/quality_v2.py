@@ -34,11 +34,21 @@ DEMO_BANK = {
 }
 
 # ---------- 题库加载 ----------
-def build_needle_doc(haystack_parts, needle_text, n_repeat=6):
-    """拼接长文档并把 needle 插在正中（n_repeat 次循环 ≈ 数千 token）"""
+def build_needle_doc(haystack_parts, needle_sentence, n_repeat=6, pos=0.5):
+    """拼接长文档，把 needle 事实句吸附到最近句边界后插入指定相对位置（pos∈[0,1]，默认正中；B8 起）。
+    句边界吸附防止 needle 粘连在词中间（B8 修复：旧版裸插关键词且恰落重复接缝）。"""
     body = "".join(haystack_parts) * n_repeat
-    mid = len(body) // 2
-    return body[:mid] + needle_text + body[mid:]
+    cut = int(len(body) * pos)
+    win = 260                      # 在 pos±win 内找最近的 ". " 句尾
+    lo, hi = max(0, cut - win), min(len(body), cut + win)
+    best = None
+    i = body.find(". ", lo, hi)
+    while i != -1:
+        d = abs(i + 2 - cut)
+        if best is None or d < best[0]: best = (d, i + 2)
+        i = body.find(". ", i + 1, hi)
+    if best: cut = best[1]
+    return body[:cut] + needle_sentence.strip() + " " + body[cut:]
 
 def load_bank(path):
     """加载题库 JSON 并渲染 F 类 needle 题 → (bank, questions)
@@ -49,9 +59,9 @@ def load_bank(path):
     qs = []
     for q in d["questions"]:
         q = dict(q)
-        if "needle" in q:  # F 类：运行时渲染长文档
+        if "needle" in q:  # F 类：运行时渲染长文档（pos 可选，默认正中）
             nd = d["needles"][q["needle"]]
-            doc = build_needle_doc(d.get("haystack", []), nd["text"], q.get("repeat", 6))
+            doc = build_needle_doc(d.get("haystack", []), nd["text"], q.get("repeat", 6), q.get("pos", 0.5))
             q["prompt"] = ("Read the following research notes and answer the question with ONLY "
                            "the key fact (few words), no explanation.\n\n" + doc +
                            "\n\nQuestion: " + q["question"])

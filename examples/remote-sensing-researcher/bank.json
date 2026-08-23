@@ -1,5 +1,5 @@
 {
- "name": "remote-sensing-researcher-72",
+ "name": "remote-sensing-researcher-76",
  "scenes": {
   "A": {
    "name": "学术写作",
@@ -37,20 +37,36 @@
  ],
  "needles": {
   "N1": {
-   "text": "DIOR-R",
-   "answer": "In the second-stage ablation, the referring comprehension branch was additionally validated on the DIOR-R dataset with 17,547 referring expression samples. "
+   "text": "In the second-stage ablation, the referring comprehension branch was additionally validated on the DIOR-R dataset with 17,547 referring expression samples. ",
+   "answer": "DIOR-R"
   },
   "N2": {
-   "text": "83.7",
-   "answer": "The relational reasoning module improved overall accuracy on EarthVQA from 81.9 to 83.7 percent. "
+   "text": "The relational reasoning module improved overall accuracy on EarthVQA from 81.9 to 83.7 percent. ",
+   "answer": "83.7"
   },
   "N3": {
-   "text": "single-stage",
-   "answer": "During reproduction, the team replaced the original two-stage pipeline with a single-stage variant for speed comparison. "
+   "text": "During reproduction, the team replaced the original two-stage pipeline with a single-stage variant for speed comparison. ",
+   "answer": "single-stage"
   },
   "N4": {
-   "text": "RSVQA-LR",
-   "answer": "A separate pilot experiment was conducted on the RSVQA-LR subset before scaling to the full dataset. "
+   "text": "A separate pilot experiment was conducted on the RSVQA-LR subset before scaling to the full dataset. ",
+   "answer": "RSVQA-LR"
+  },
+  "N5": {
+   "text": "For the internal reproducibility study, the team adopted the codename AURORA across all experiment logs. ",
+   "answer": "AURORA"
+  },
+  "N6": {
+   "text": "A supplementary annotation pass was carried out by the student group RS-SQuAD during the summer workshop. ",
+   "answer": "RS-SQuAD"
+  },
+  "N7": {
+   "text": "In the fusion-layer ablation, replacing concatenation fusion with gated fusion raised Acc@0.5 from 64.2 to 71.8 percent. ",
+   "answer": "71.8"
+  },
+  "N8": {
+   "text": "A latency profiling session on the embedded deployment target recorded 47 milliseconds per image. ",
+   "answer": "47"
   }
  },
  "questions": [
@@ -826,6 +842,50 @@
    },
    "needle": "N4",
    "question": "On which subset was the separate pilot experiment conducted?"
+  },
+  {
+   "id": "F5",
+   "scene": "F",
+   "pos": 0.15,
+   "grader": {
+    "mode": "sub",
+    "target": "AURORA"
+   },
+   "needle": "N5",
+   "question": "What codename was adopted for the internal reproducibility study?"
+  },
+  {
+   "id": "F6",
+   "scene": "F",
+   "pos": 0.3,
+   "grader": {
+    "mode": "sub",
+    "target": "RS-SQuAD"
+   },
+   "needle": "N6",
+   "question": "Which student group carried out the supplementary annotation pass?"
+  },
+  {
+   "id": "F7",
+   "scene": "F",
+   "pos": 0.7,
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)71\\.8(?!\\d)"
+   },
+   "needle": "N7",
+   "question": "What Acc@0.5 did gated fusion reach in the fusion-layer ablation?"
+  },
+  {
+   "id": "F8",
+   "scene": "F",
+   "pos": 0.85,
+   "grader": {
+    "mode": "re",
+    "target": "(?<!\\d)47(?!\\d)"
+   },
+   "needle": "N8",
+   "question": "How many milliseconds per image were recorded in the latency profiling session?"
   },
   {
    "id": "G1",

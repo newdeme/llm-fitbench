@@ -39,22 +39,36 @@ class TestBanks(unittest.TestCase):
         self.assertEqual(bank["name"], "demo-neutral-6")
 
     def test_rs_bank_json_integrity(self):
-        """示例题库必须是独立 JSON（不再内嵌于脚本）"""
+        """示例题库必须是独立 JSON（不再内嵌于脚本）；B8 起 F 扩到 8 题、共 76 题"""
         self.assertTrue(os.path.exists(RS_BANK), "bank.json 不存在")
         bank, qs = qv.load_bank(RS_BANK)
         from collections import Counter
         c = Counter(q["scene"] for q in qs)
-        self.assertEqual(len(qs), 72)
+        self.assertEqual(len(qs), 76)
         self.assertEqual(c["A"], 16); self.assertEqual(c["B"], 16)
         self.assertEqual(c["C"], 12); self.assertEqual(c["D"], 8)
-        self.assertEqual(c["E"], 8); self.assertEqual(c["F"], 4); self.assertEqual(c["G"], 8)
-        self.assertEqual(bank["name"], "remote-sensing-researcher-72")
+        self.assertEqual(c["E"], 8); self.assertEqual(c["F"], 8); self.assertEqual(c["G"], 8)
+        self.assertEqual(bank["name"], "remote-sensing-researcher-76")
 
     def test_rs_bank_needle_rendering(self):
         bank, qs = qv.load_bank(RS_BANK)
         f1 = [q for q in qs if q["id"] == "F1"][0]
         self.assertIn("DIOR-R", f1["prompt"])
         self.assertGreater(len(f1["prompt"]), 8000)  # 长文档已渲染
+
+    def test_rs_bank_needle_position(self):
+        """B8 位置维度：F5(pos=0.15) needle 应在文档前段，F8(pos=0.85) 在后段；
+        并验证插入的是完整事实句（B8 修复：旧版裸插关键词粘在接缝）"""
+        bank, qs = qv.load_bank(RS_BANK)
+        for qid, pos, frag in (("F5", 0.15, "codename AURORA"), ("F8", 0.85, "recorded 47 milliseconds")):
+            q = [x for x in qs if x["id"] == qid][0]
+            doc = q["prompt"]
+            idx = doc.find(frag)
+            self.assertGreater(idx, 0, f"{qid} needle 事实句未渲染")
+            frac = idx / len(doc)
+            self.assertLess(abs(frac - pos), 0.1, f"{qid} needle 位置 {frac:.2f} 偏离声明 {pos}")
+        f1 = [x for x in qs if x["id"] == "F1"][0]["prompt"]
+        self.assertIn("additionally validated on the DIOR-R dataset", f1)
 
     def test_script_has_no_private_bank(self):
         """脚本本体不得内嵌私人题库（题库外置原则）"""
