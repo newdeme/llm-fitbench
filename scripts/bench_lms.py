@@ -3,9 +3,10 @@
 bench_lms.py -- LM Studio (OpenAI-compatible) 评测适配器
 方法论同 METHODOLOGY.md；复用 bench.py 的题库/判分/存档。
 测量口径（自测，不依赖服务端自报速度）：
-  TTFT   = 首 content chunk 到达时间（含 prefill）
-  decode = completion_tokens / (总时长 - TTFT)
-  prompt_tokens / completion_tokens 采信 usage 字段（缺省时以 chunk 数近似）
+  TTFT   = 首 token（content 或 reasoning_content）到达时间（含 prefill）
+  decode = completion_tokens / (总时长 - TTFT)   [completion 为 SSE 自计：每 delta≈1 token]
+  计量双口径（B7 tiktoken 仲裁）：token 数以 SSE 自计为准，usage 字段仅审计
+  （分歧>15% 自动标记 usage_divergence）；prefill 双报 tok/s 与 prefill_cps（字符/秒，跨 tokenizer 公平）
 """
 import argparse, datetime, json, os, random, subprocess, sys, time
 import urllib.request, urllib.error
@@ -119,6 +120,11 @@ def cmd_ladder(a):
     save("lms-ladder", out)
 
 # ---------- P4 stress（双探针截断检测） ----------
+# B7 实证：裸填充文本 × 对话格式模型（harmony 等）只会生成不可见通道 → 空流假象；
+# 且小预算下 reasoning 计入 max_tokens 不流出，content 永不启动。→ 指令放尾部 + 大预算。
+STRESS_INSTRUCTION = ("\n\n---\n(INSTRUCTION: The passage above is a long reference text for a "
+                      "throughput test. Do not summarize or repeat it. Reply with only: OK - received.)")
+
 def cmd_stress(a):
     out = {}
     for m in a.models:
@@ -130,8 +136,10 @@ def cmd_stress(a):
                 eta = ctx / prev_rate / 60
                 print(f"  [ETA] {m} @{ctx}: 预计 prefill ~{eta:.0f} 分钟（按 {prev_rate:.0f} tok/s 外推，实际会随长度衰减→取保守值，更长）")
             p = build_prompt(ctx)
+            if a.instruction:
+                p = p + a.instruction   # 防裸文本退化（B7）；指令放尾部保 recency
             try:
-                r = chat_stream(m, p, 64)
+                r = chat_stream(m, p, a.np)
                 if r["ttft"] and r["prompt_tokens"]:
                     prev_rate = r["prompt_tokens"] / r["ttft"]  # 用实测更新下一个探针的 ETA 锚点
                 probes.append({"target": ctx, "actual": r["prompt_tokens"], "ttft": r["ttft"],
@@ -237,6 +245,11 @@ if __name__ == "__main__":
     p = sub.add_parser("stress"); p.add_argument("-m", "--models", nargs="+", required=True)
     p.add_argument("--ctxs", nargs="+", type=int, default=[65536, 131072])
     p.add_argument("--rate", type=float, default=0, help="已实测 prefill 速率锚点(tok/s)，用于开跑前 ETA 外推")
+    p.add_argument("--np", type=int, default=4096,
+                   help="生成预算，默认 4096：harmony/thinking 模型 reasoning 计入 max_tokens 且不可见，"
+                        "小预算会产生空流假象（B7 实证 32/64/96 全灭、4096 全通）")
+    p.add_argument("--instruction", default=STRESS_INSTRUCTION,
+                   help="追加到填充文本尾部的指令（防裸文本×对话格式退化→空流，B7）；传空串 '' 可禁用")
     p.set_defaults(f=cmd_stress)
     p = sub.add_parser("athermal"); p.add_argument("-m", "--models", nargs="+", required=True)
     p.add_argument("--groups", type=int, default=3)
