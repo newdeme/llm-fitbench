@@ -140,8 +140,10 @@ def cmd_stress(a):
                 probes.append({"target": ctx, "status": f"FAIL {str(e)[:60]}"})
             pr = probes[-1]
             print(f"  {m} @{ctx:>6}: {pr['status']}"
-                  + (f" actual={pr['actual']} TTFT={pr['ttft']:.0f}s decode={pr['decode']:.1f}"
+                  + (f" actual={pr.get('actual')} TTFT={pr['ttft']:.0f}s decode={pr['decode']:.1f}"
                      if pr["status"] == "OK" else ""))
+            if pr["status"] == "OK" and not pr.get("ttft"):
+                print(f"    ⚠️ 空流（200 但无任何 delta）：疑超 loaded_context_length 或加载态异常")
         oks = [x for x in probes if x["status"] == "OK" and x.get("actual")]
         verdict = "OK"
         if len(oks) >= 2 and oks[-1]["actual"] < oks[0]["actual"] * 1.05:
