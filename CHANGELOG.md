@@ -2,6 +2,18 @@
 
 本项目的所有显著变更都记录在此文件中。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.4.0] - 2026-08-23
+
+### Added
+
+- **遥感题库 F 场景 4→8 题 + needle 位置维度**：新增可选 `pos` 字段（0–1 相对位置，默认 0.5 正中）；F5–F8 分布 0.15/0.3/0.7/0.85。题库更名 `remote-sensing-researcher-72` → **`-76`**（F 扩容后新旧 F 成绩不可直比；A–E/G 未动可延续）。
+- **GSM8K 分层数学题库** `examples/gsm8k-math/`（12 题：易≤2步/中3–4步/难≥5步各 4 题；源 openai/gsm8k test 前 300 行節选，MIT；选法可复现见其 README）。
+- 单测新增 needle 位置渲染断言（共 13 项）。
+
+### Fixed
+
+- **F 场景 needle 渲染缺陷（B8 发现）**：旧版把判分关键词裸插文档（而非完整事实句），且 `n_repeat=6` 时插入点恰落在重复接缝（无空格粘连）——旧 F 成绩可能含领域先验成分。修复：needle 按题库模板契约插入完整事实句（`text` 字段），并吸附到最近句边界；`remote-sensing-researcher` 题库 needles 字段语义归正（text=事实句， answer=关键词）。
+
 ## [0.3.0] - 2026-08-23
 
 ### Added

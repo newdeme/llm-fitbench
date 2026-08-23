@@ -7,7 +7,7 @@
 
 `$FITBENCH/scripts/quality_v2.py`（结果写入 `BENCH_DATA_DIR`，本机设 `$LAB/bench_results`）
 
-**题库外置（v0.2.0 起）**：题库是独立 JSON，`--bank` 加载；脚本只内置 6 题中性演示。本机遥感题库：`$FITBENCH/examples/remote-sensing-researcher/bank.json`
+**题库外置（v0.2.0 起）**：题库是独立 JSON，`--bank` 加载；脚本只内置 6 题中性演示。本机遥感题库（v0.4.0 起 76 题）：`$FITBENCH/examples/remote-sensing-researcher/bank.json`；分层数学题库：`$FITBENCH/examples/gsm8k-math/bank.json`（GSM8K 子集，MIT）
 
 ```bash
 export BENCH_DATA_DIR=$LAB/bench_results
@@ -20,7 +20,7 @@ python3 $FITBENCH/scripts/quality_v2.py lmstudio -m ornith-1.5-35b-a3b-mlx --ban
 # 若仍大量空响应（如 qwen3.6 的病理性长思考），如实记录为"预算饥饿"特性
 ```
 
-## 题库结构（72 题，六场景+底噪）
+## 题库结构（76 题，六场景+底噪；v0.4.0 起）
 
 | 场景 | 题数 | 题型 | 判分方式 |
 |---|---|---|---|
@@ -29,8 +29,12 @@ python3 $FITBENCH/scripts/quality_v2.py lmstudio -m ornith-1.5-35b-a3b-mlx --ban
 | C 遥感领域 | 12 | 可溯源事实题 + **幻觉探针**（冷僻但可验证） | 子串/正则 |
 | D 学术翻译 | 8 | 术语匹配（译文须含标准术语集） | `and` |
 | E 实验分析 | 8 | 可验证数值（相对提升/降幅——考分母错误） | 数值正则 |
-| F 长文检索 | 4 | needle-in-haystack（~5K 领域文档埋构造事实） | needle 子串 |
+| F 长文检索 | 8 | needle-in-haystack（~5.5K 领域文档埋构造事实句；v0.4.0 起带**位置维度** pos 0.15–0.85，旧题默认正中） | needle 子串/正则 |
 | G 通用底噪 | 8 | 保留自 v1（参照基线） | 同 v1 |
+
+**v4.0 渲染修复告示**：v0.3.x 及以前（-72 题）F 场景 needle 只插入判分关键词且恰落在重复接缝处（无空格粘连）——旧 F 成绩含领域先验成分，与 -76 的 F 成绩**不可直比**（A–E/G 七场景未动可延续）。
+
+**分层数学题库（独立）**：`examples/gsm8k-math/`（12 题，易≤2步/中3–4步/难≥5步各 4 题，GSM8K test 子集，MIT）——与遥感题库分开跑、按层剖面报告，见其 README。
 
 **场景权重**：主场景 A/B/D/E/F=1.0，次场景 C/G=0.5（由用户工作优先级审定，非均权）。
 
