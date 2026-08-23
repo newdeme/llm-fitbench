@@ -43,7 +43,7 @@ python3 scripts/bench.py quality -m 你的模型:tag
 
 ## 核心理念（为什么这样测）
 
-1. **六大偏差控制**：冷加载/名义长度/缓存命中/热节流/失败混淆/判分错误——每一个都有实测翻车案例，全部固化在工具里。
+1. **八大偏差控制**：冷加载/名义长度/缓存命中/热节流/失败混淆/判分错误/驻留污染/计量口径——每一个都有实测翻车案例，全部固化在工具里。
 2. **题库构建七定律**：效度（测你的工作负载）> 难度；私有材料出题天然免疫数据污染；判分器是最大错误源，双挂题先审判分器；场景剖面 > 总分排名；幻觉探针单列；thinking 预算饥饿是成本不是噪声。
 3. **失败甄别**：400 ≠ OOM ≠ 静默截断——三种"死法"不同药方。
 
@@ -78,14 +78,16 @@ python3 scripts/quality_v2.py ollama -m 模型 --bank my-bank.json --limit 4
 ```
 llm-fitbench/
 ├── scripts/            # bench.py / bench_lms.py / quality_v2.py
-├── docs/METHODOLOGY.md # 方法论：偏差控制、七定律、失败甄别
+├── skill/              # Agent Skill 正本（SKILL.md + references；本地 ~/.agents/skills 可 symlink 到此）
+├── docs/METHODOLOGY.md # 方法论：八大偏差控制、七定律、失败甄别
 ├── examples/           # 题库模板 + 遥感科研示例说明
 └── tests/              # 核心逻辑单元测试（CI 运行，无需引擎）
 ```
 
 ## 路线图
 
-- [ ] 外置题库文件加载（--bank path.json）
+- [x] 外置题库文件加载（--bank path.json，v0.2.0）
+- [x] Agent Skill 入仓正本 + symlink 布局（v0.3.0）
 - [ ] 更多引擎适配（llama.cpp server / vLLM）
 - [ ] 结果汇总报告自动生成（RESULTS.md 模板化）
 

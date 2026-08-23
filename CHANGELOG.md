@@ -2,6 +2,22 @@
 
 本项目的所有显著变更都记录在此文件中。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.3.0] - 2026-08-23
+
+### Added
+
+- **`skill/` 目录：Agent Skill 正本**（SKILL.md + references 三篇）。本地 `~/.agents/skills/local-model-bench` 改为指向此目录的 symlink，skill 与工具/方法论同仓库同版本演进，消除双位置失同步漂移。内容同步至 B7：空流三病因甄别、计量三坑（usage 虚增/tokenizer 少计/间接推断假设错）、三重防污染纪律、超窗行为对比。
+- `bench_lms.py stress --instruction`：追加到填充文本尾部的指令（防裸文本×对话格式模型空流假象，B7 实证；传空串可禁用）。
+
+### Changed
+
+- **`bench_lms.py stress` 默认生成预算 64 → 4096**：harmony/thinking 模型 reasoning 计入 max_tokens 且不可见，小预算会产生空流假象（B7 实证 32/64/96 全灭、4096 全通），旧默认会误判窗口为不可用。
+- **METHODOLOGY v1.3**：六大 → 八大偏差控制（新增驻留污染、计量口径偏差）；失败甄别表升级空流三病因；超窗行为对比（Ollama 丢头+编造 vs LMS 秒空流）；统一内存纪律补 JIT 两坑/幽灵加载/`/api/stop` 404；坑清单 12 → 19 条。
+
+### Fixed
+
+- `bench_lms.py` 模块 docstring 计量口径描述过时（仍称"采信 usage 字段"，实际已 SSE 自计 + usage 审计）。
+
 ## [0.2.0] - 2026-08-22
 
 ### Changed

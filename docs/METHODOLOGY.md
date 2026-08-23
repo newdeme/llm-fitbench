@@ -1,7 +1,7 @@
 # 本地 LLM 实测评评方法论（通用版）
 
 > 适用于任何 Apple Silicon Mac（或类似统一内存机器）+ Ollama / LM Studio 的本地模型选型。
-> 配套工具：`scripts/`（bench.py / bench_lms.py / quality_v2.py）。版本 v1.2。
+> 配套工具：`scripts/`（bench.py / bench_lms.py / quality_v2.py）。版本 v1.3。
 
 ## 0. 环境基线（复现性记录，测前先填你自己的）
 
@@ -14,7 +14,7 @@
 
 **跨引擎注意**：Ollama 与 LM Studio 是不同推理引擎，跨引擎对比含后端差异，非纯模型差异。
 
-## 1. 六大偏差控制（数据可信的前提，全部来自实测踩坑）
+## 1. 八大偏差控制（数据可信的前提，全部来自实测踩坑）
 
 | # | 偏差 | 症状案例 | 控制手段 |
 |---|---|---|---|
@@ -22,8 +22,10 @@
 | 2 | 名义≠实际长度 | 目标"4K"实测 18K | 一律以 API 返回的实际 token 计数为准并随结果报告 |
 | 3 | prompt 缓存命中 | prefill 速率出现天文数字 | 同一 prompt 只信首次 prefill；工具自动标记 cache_hit |
 | 4 | 热节流 | 同模型 35.9→28.6 tok/s（排在末位被热惩罚） | 组内随机打乱×3组×15–20s冷却，报均值±std |
-| 5 | 失败类型混淆 | 400 ≠ OOM ≠ 静默截断 | 见 §4 失败甄别表 |
+| 5 | 失败类型混淆 | 400 ≠ OOM ≠ 静默截断 ≠ 空流三病因 | 见 §4 失败甄别表 |
 | 6 | 判分者出错 | 标准答案写错、正则漏 Unicode 连字符 | 原始输出必展示；key 溯源；可疑失败 3 倍预算复测 |
+| 7 | 驻留污染 | 大模型残留驻留压低后续模型吞吐 7–27%（实测：ornith 69GB 残留压 qwen3.6 -7%；顺序执行累积压三模型 14–27%） | 三重防污染：①测前卸双侧（`keep_alive:0` + `lms unload --all`）②每块前后 ps 快照比对 ③多模型同批交错而非顺序 |
+| 8 | 计量口径偏差 | usage 虚增 ~2×（幻影 reasoning 不流出却计费）；tokenizer 对高重复文本少计 ~2×；chunk→token 比例假设错出 143 tok/s 假值（真值 79.2） | token 数以 SSE 自计为准（工具已内置 usage_divergence 标记）；关键测量用自然文本交叉验证；任何间接推断必经 tiktoken 真值仲裁；prefill 跨引擎对比用字符/秒口径 |
 
 ## 2. 七步流程
 
@@ -37,7 +39,7 @@
 | P5 | 质量评测 | `bench.py quality`（通用快筛）/ `quality_v2.py`（场景化） | 见 §5 |
 | P6 | 综合裁决 + 配置落地 | 速度×质量×窗口三维 + 备份后增量改配置 | — |
 
-LM Studio 用 `bench_lms.py`（同五子命令，OpenAI 兼容流式自测 TTFT/decode）。
+LM Studio 用 `bench_lms.py`（同五子命令，OpenAI 兼容流式自测 TTFT/decode）。注意：长窗测试前先 `lms load --context-length N` 显式加载（JIT 默认 8K 窗超载会静默空流）；stress 默认追加指令 + 4096 预算（防对话格式模型空流假象，v0.3.0 起）。
 
 **快速通道（新模型 30 分钟初筛）**：P0 + P1 + P2(中档) + P5(--limit 12)，不过门槛即淘汰；有亮点再补全量。
 
@@ -55,7 +57,11 @@ LM Studio 用 `bench_lms.py`（同五子命令，OpenAI 兼容流式自测 TTFT/
 | HTTP 400 Bad Request | 超窗拒绝（≠OOM） |
 | 实际处理 token 停在某值不随输入增长 | **静默截断**（声明窗口不可信；双探针法：输入翻倍而实际处理不增） |
 | 连接断/超时/insufficient resources | 加载失败/内存不足 |
-| 200 但内容为空 | 空响应（可能是 thinking 模型预算饥饿，复测定性） |
+| **秒回空流**（<10s，无 prefill） | 真超窗拒绝（LMS 超 loaded_context_length 静默空流，无 HTTP 错） |
+| **慢空流**（prefill 全时长后无输出） | ①预算饥饿：harmony/thinking 模型 reasoning 计入 max_tokens 且不可见，小预算（≤96）content 永不启动，≥4096 全通；②裸填充文本×对话格式退化：仅生成不可见通道。鉴别：分别加大预算/追加指令复测 |
+| usage 与 SSE 自计分歧 >15% | 计量口径坑：LMS gpt-oss 类 completion 虚增 ~2×（幻影 reasoning 不流出却计费）→ 以 SSE 自计为准 |
+
+**超窗行为对比（两引擎均静默无 HTTP 错，上层应用必须自防）**：Ollama 丢头保尾（截前 num_ctx/2）且**模型编造丢失内容**（NIAH 实证，危险）；LM Studio 秒回空流（可检测但无提示）。
 
 ## 5. 质量评测与题库构建七定律
 
@@ -85,20 +91,25 @@ LM Studio 用 `bench_lms.py`（同五子命令，OpenAI 兼容流式自测 TTFT/
 
 ## 7. 统一内存机器纪律
 
-- 同一时刻只跑一个大模型：`curl -s localhost:11434/api/stop -d '{"all":true}'` ↔ `lms unload --all`；
+- 同一时刻只跑一个大模型：Ollama 逐模型 `keep_alive:0` 卸载（`/api/stop` 在 0.32.x 返回 404）↔ `lms unload --all`；
 - 切换引擎前先卸对侧，否则 insufficient resources；
+- **LM Studio JIT 默认 8K 窗口**：prompt 超载返回 200+空流（不报 400）→ 测前必须 `lms load --context-length N` 显式加载；
+- **LM Studio JIT 切换不驱逐旧驻留**：换模型必先 `lms unload`，否则 HTTP 400 加载失败连环；
+- 吞吐测试期间关闭后台客户端的快速模型自动调用（幽灵加载 JIT 挤占内存，实测污染一处）；
 - 长上下文压测额外吃 KV cache 内存，先清理再测。
 
 ## 8. 结果档案建议
 
 结果单独维护 `RESULTS.md`（不与方法论混排，避免快照过期）：环境基线 → 场景选型表（结论先行）→ 各批次章节（汇总/明细/审计链/踩坑）→ 未完成项登记 → 追加协议（只追加不覆盖历史批次）。私有数据放 `BENCH_DATA_DIR` 指定的目录，不进仓库。
 
-## 9. 已知坑清单（12 条）
+## 9. 已知坑清单（19 条）
 
-1. run1 含冷加载弃之；2. 长度以实际 token 计数为准；3. 同 prompt 复用毁 prefill；4. 固定顺序测多模型=热偏差；5. 400≠OOM≠静默截断；6. 声明的 context_length 不可信；7. 双探针才能发现静默截断；8. 截断失败 3 倍预算复测再判；9. 空响应是可靠性/预算问题不是智力；10. 判分 key 自己也会错须审计；11. 正则要容 Unicode 连字符/LaTeX/中文标点；12. 改配置先查真实归属（全局默认≠会话模型）再备份增量。
+1. run1 含冷加载弃之；2. 长度以实际 token 计数为准（防计量坑）；3. 同 prompt 复用毁 prefill；4. 固定顺序测多模型=热偏差；5. 400≠OOM≠静默截断≠空流三病因；6. 声明的 context_length 不可信；7. 双探针才能发现静默截断；8. 截断失败 3 倍预算复测再判；9. 空响应先查口径（裸 generate→chat）与预算饥饿，再谈可靠性；10. 判分 key 自己也会错须审计；11. 正则要容 Unicode 连字符/LaTeX/中文标点；12. 改配置先查真实归属（全局默认≠会话模型）再备份增量；13. 测前卸双侧+ps 快照+同批交错（驻留污染压值 7–27%）；14. LMS JIT 默认 8K 窗超载=静默空流，先 `lms load --context-length`；15. LMS JIT 切换不驱逐旧模型，换模型先 `lms unload`；16. 吞吐测试关后台客户端幽灵加载；17. Ollama 0.32.x `/api/stop` 404 → 卸载用 `keep_alive:0`；18. 间接推断（chunk 比例外推）必须 tiktoken 真值交叉验证；19. 超窗两引擎均静默：Ollama 丢头+编造（危险），LMS 秒空流（可检测）——上层自防。
 
 ## 10. 局限声明
 
 - 不测真实任务端到端效果（如视觉任务准确率）、多轮对话稳定性、微调后表现；
 - 热控制是统计缓解而非消除，跨天对比以同批同序为准；
-- LM Studio thinking 模型流含 reasoning_content，TTFT/吞吐须计入（bench_lms.py 已处理）。
+- LM Studio thinking 模型流含 reasoning_content，TTFT/吞吐须计入（bench_lms.py 已处理）；
+- 不可见 reasoning 模型（LMS gpt-oss harmony）：实测 TTFT=首**可见** content（含隐藏推理时长），引用须注明口径；
+- Ollama gpt-oss tokenizer 对高重复文本少计 ~2×（自然文本正常）——合成填充文本测得的 actual ctx 为半价单位，关键测量用自然文本交叉验证。
