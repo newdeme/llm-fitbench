@@ -7,7 +7,7 @@ bench_lms.py -- LM Studio (OpenAI-compatible) 评测适配器
   decode = completion_tokens / (总时长 - TTFT)
   prompt_tokens / completion_tokens 采信 usage 字段（缺省时以 chunk 数近似）
 """
-import argparse, datetime, json, os, sys, time
+import argparse, datetime, json, os, random, subprocess, sys, time
 import urllib.request, urllib.error
 
 # 复用 bench.py 的公共部件（题库/判分/prompt构造/存档）
@@ -137,6 +137,50 @@ def cmd_stress(a):
         out[m] = {"probes": probes, "verdict": verdict}
     save("lms-stress", out)
 
+# ---------- P3 athermal（去热排名） ----------
+def lms_unload_all():
+    """LM Studio JIT 切换不驱逐旧驻留模型（B5 实证）→ 测前显式卸载全部。"""
+    try:
+        subprocess.run(["lms", "unload", "--all"], capture_output=True, timeout=120)
+    except Exception as e:
+        print(f"  [warn] lms unload --all 失败: {e}")
+
+def cmd_athermal(a):
+    out = {m: [] for m in a.models}
+    random.seed()
+    for g in range(1, a.groups + 1):
+        order = a.models[:]
+        random.shuffle(order)
+        print(f"\n===== group {g}/{a.groups} order={order} =====")
+        for m in order:
+            lms_unload_all()          # B5 实证：不卸载则大模型驻留挤占内存/缓存
+            time.sleep(a.cooldown)
+            try:
+                warmup(m)             # JIT 加载（注意：默认窗口 8K，--ctx 需 ≤8000 或预先显式加载）
+                r = chat_stream(m, build_prompt(a.ctx), a.np)
+            except Exception as e:
+                print(f"  {m:32s} FAILED [{str(e)[:60]}]"); continue
+            flag = "  [cache-hit→prefill弃用]" if r["cache_hit"] else ""
+            print(f"  {m:32s} decode {r['decode']:5.1f} | TTFT {r['ttft']:6.1f}s{flag}")
+            out[m].append({"decode": r["decode"], "ttft": r["ttft"],
+                           "prefill": r["prefill"], "prompt_tokens": r["prompt_tokens"],
+                           "cache_hit": r["cache_hit"]})
+    print("\n===== 去热排名（decode 均值±std；prefill 仅采信非缓存命中） =====")
+    rows = []
+    for m in a.models:
+        if not out[m]:
+            rows.append((m, 0, 0, 0, 0)); continue
+        vals = [x["decode"] for x in out[m]]
+        mean = sum(vals) / len(vals)
+        std = (sum((v - mean) ** 2 for v in vals) / len(vals)) ** 0.5 if len(vals) > 1 else 0
+        pre = [x["prefill"] for x in out[m] if not x["cache_hit"]]
+        pmean = sum(pre) / len(pre) if pre else 0
+        rows.append((m, mean, std, pmean, len(vals)))
+        print(f"  {m:32s} decode {mean:5.1f} ± {std:4.1f} tok/s | prefill(有效) {pmean:6.1f}/s | n={len(vals)}")
+    for i, r in enumerate(sorted(rows, key=lambda x: -x[1]), 1):
+        print(f"  #{i} {r[0]:32s} {r[1]:5.1f} ± {r[2]:4.1f}")
+    save("lms-athermal", out)
+
 # ---------- P5 quality ----------
 def cmd_quality(a):
     bank = BANK[: a.limit] if a.limit else BANK
@@ -179,6 +223,12 @@ if __name__ == "__main__":
     p.add_argument("--ctxs", nargs="+", type=int, default=[65536, 131072])
     p.add_argument("--rate", type=float, default=0, help="已实测 prefill 速率锚点(tok/s)，用于开跑前 ETA 外推")
     p.set_defaults(f=cmd_stress)
+    p = sub.add_parser("athermal"); p.add_argument("-m", "--models", nargs="+", required=True)
+    p.add_argument("--groups", type=int, default=3)
+    p.add_argument("--cooldown", type=int, default=20)
+    p.add_argument("--ctx", type=int, default=4800,
+                   help="默认 4800；>8000 需先手动 lms load --context-length 显式加载（JIT 默认 8K 窗超载会静默空流）")
+    p.add_argument("--np", type=int, default=256); p.set_defaults(f=cmd_athermal)
     p = sub.add_parser("quality"); p.add_argument("-m", "--models", nargs="+", required=True)
     p.add_argument("--np", type=int, default=256)
     p.add_argument("--limit", type=int, default=0); p.set_defaults(f=cmd_quality)

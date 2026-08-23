@@ -34,10 +34,22 @@ def call(host, path, data, timeout):
         return json.loads(r.read())
 
 def stop_all(host, sleep_after):
+    """卸载全部驻留模型后冷却。
+    注：/api/stop 在 Ollama 0.32.x 返回 404（B5 实证旧版静默失败），
+    改用 /api/ps 枚举驻留 + /api/generate keep_alive=0 逐模型卸载。"""
+    names = []
     try:
-        call(host, "/api/stop", {"all": True}, 20)
+        req = urllib.request.Request(host + "/api/ps", method="GET")
+        with urllib.request.urlopen(req, timeout=20) as r:
+            names = [m.get("name") or m.get("model")
+                     for m in json.loads(r.read()).get("models", [])]
     except Exception:
-        pass
+        pass  # 取不到清单时退化为仅冷却（与旧行为兼容）
+    for n in filter(None, names):
+        try:
+            call(host, "/api/generate", {"model": n, "keep_alive": 0}, 60)
+        except Exception:
+            pass
     time.sleep(sleep_after)
 
 def gen(host, model, prompt, num_predict, num_ctx=None, timeout=3600):
