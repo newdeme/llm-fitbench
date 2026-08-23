@@ -24,7 +24,7 @@ def chat_stream(model, prompt, max_tokens, temperature=0.0, timeout=3600, stream
         body["stream_options"] = {"include_usage": True}
     req = urllib.request.Request(BASE + "/chat/completions",
             data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
-    t0 = time.time(); ttft = None; chunks = 0; parts = []; usage = {}
+    t0 = time.time(); ttft = None; chunks = 0; parts = []; usage = {}; n_c = 0; n_r = 0
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             for raw in r:
@@ -43,20 +43,30 @@ def chat_stream(model, prompt, max_tokens, temperature=0.0, timeout=3600, stream
                     if c or rc:
                         if ttft is None: ttft = time.time() - t0
                         if c:
-                            parts.append(c); chunks += 1
+                            parts.append(c); chunks += 1; n_c += 1
+                        if rc:
+                            n_r += 1
     except urllib.error.HTTPError as e:
         if stream_opts and e.code == 400:          # 服务端不认 stream_options → 去掉重试
             return chat_stream(model, prompt, max_tokens, temperature, timeout, False)
         raise RuntimeError(f"HTTP {e.code}: {e.read().decode('utf-8','replace')[:120]}")
     t_end = time.time()
     text = "".join(parts)
-    comp = usage.get("completion_tokens") or chunks
+    # ── 计量双口径（B6 仲裁实证：LMS gpt-oss 的 usage.completion_tokens 可虚增 ~2×，
+    #    含未流出的幻影 reasoning；而 usage.prompt_tokens 与 tiktoken 真值一致）──
+    # completion 以 SSE 自计为准（每 delta ≈ 1 token，与 tiktoken 实测一致）；usage 仅审计
+    comp = n_c + n_r                      # SSE 自计（content+reasoning chunk 数）
+    comp_usage = usage.get("completion_tokens")
     ptok = usage.get("prompt_tokens")
+    usage_div = bool(comp_usage and abs(comp_usage - comp) / max(comp, 1) > 0.15)
     gen = (t_end - t0) - (ttft or 0)
-    return {"text": text, "prompt_tokens": ptok, "completion_tokens": comp,
+    return {"text": text, "prompt_tokens": ptok, "prompt_chars": len(prompt),
+            "completion_tokens": comp, "completion_tokens_usage": comp_usage,
+            "usage_divergence": usage_div,
             "ttft": ttft, "total": t_end - t0,
             "decode": comp / gen if gen > 0 and comp else 0,
             "prefill": (ptok / ttft) if ttft and ptok else 0,
+            "prefill_cps": (len(prompt) / ttft) if ttft else 0,   # 字符/秒，跨 tokenizer 公平口径
             "cache_hit": bool(ptok and ptok > 1000 and ttft and ttft < 0.5)}
 
 def warmup(model):
@@ -74,12 +84,13 @@ def cmd_baseline(a):
         for i in range(a.runs):
             r = chat_stream(m, "Explain the theory of relativity in detail, step by step.", a.np)
             runs.append(r)
+            div = "  [usage分歧→SSE自计]" if r["usage_divergence"] else ""
             print(f"  run{i+1}: decode {r['decode']:5.1f} tok/s | TTFT {r['ttft']:5.2f}s | "
-                  f"total {r['total']:6.1f}s | {r['completion_tokens']} tok")
+                  f"total {r['total']:6.1f}s | {r['completion_tokens']} tok{div}")
         steady = [r["decode"] for r in runs[1:]] or [r["decode"] for r in runs]
         mean = sum(steady) / len(steady)
         print(f"  >> steady decode = {mean:.1f} tok/s")
-        out[m] = {"runs": [{k: r[k] for k in ('decode','ttft','total','completion_tokens')} for r in runs],
+        out[m] = {"runs": [{k: r[k] for k in ('decode','ttft','total','completion_tokens','completion_tokens_usage','usage_divergence')} for r in runs],
                   "steady_decode": mean}
     save("lms-baseline", out)
 
@@ -98,9 +109,11 @@ def cmd_ladder(a):
                 print(f"  ~{ctx}: FAILED [{str(e)[:80]}]")
                 curve.append({"target": ctx, "status": f"FAIL {str(e)[:60]}"}); continue
             flag = "  [CACHE-HIT: prefill 弃用]" if r["cache_hit"] else ""
-            print(f"  target {ctx:>6} -> actual {r['prompt_tokens'] or '?':>6} | prefill {r['prefill']:6.1f}/s "
-                  f"| TTFT {r['ttft']:6.1f}s | decode {r['decode']:5.1f}/s{flag}")
+            div = "  [usage与SSE计数分歧>15%! 已用SSE自计]" if r["usage_divergence"] else ""
+            print(f"  target {ctx:>6} -> actual {r['prompt_tokens'] or '?':>6} | prefill {r['prefill']:6.1f}/s ({r['prefill_cps']:7.0f} c/s)"
+                  f" | TTFT {r['ttft']:6.1f}s | decode {r['decode']:5.1f}/s{flag}{div}")
             curve.append({"target": ctx, "actual": r["prompt_tokens"], "prefill": r["prefill"],
+                          "prefill_cps": r["prefill_cps"],
                           "ttft": r["ttft"], "decode": r["decode"], "status": "OK"})
         out[m] = curve
     save("lms-ladder", out)
