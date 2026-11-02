@@ -1,7 +1,7 @@
 # 自建题库模板（question-bank template）
 
 > 题库 = 一个 JSON 文件。`quality_v2.py --bank your-bank.json` 加载。
-> 脚本本体不含任何真实题库（只有 6 题中性演示）。完整示例：`examples/remote-sensing-researcher/bank.json`（遥感科研工作者 72 题）。
+> 脚本本体不含任何真实题库（只有 6 题中性演示）。完整示例：`examples/remote-sensing-researcher/bank.json`（遥感科研工作者 76 题）。
 > 出题前先读 `docs/METHODOLOGY.md` §5 七定律。
 
 ## 第一步：列你的场景清单（效度定律）

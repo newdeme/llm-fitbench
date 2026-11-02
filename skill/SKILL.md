@@ -16,8 +16,10 @@ description: 本地开源模型与 Apple Silicon Mac 适配性的实证评测与
 
 ## 三位置布局（canonical，勿建副本）
 
-- **工具+方法论+本 skill 正本（开源仓库，private 勿转 Public）**：`$FITBENCH/`（github.com/newdeme/llm-fitbench）
-  - `scripts/` — bench.py（Ollama）/ bench_lms.py（LM Studio, OpenAI 兼容）五子命令；quality_v2.py（72 题场景化，`--no-think` 支持）
+> 路径变量：`$FITBENCH` = 本仓库克隆目录；`$LAB` = 你自己的私有数据目录（存 RESULTS.md 与 bench_results/，不入 git）。
+
+- **工具+方法论+本 skill 正本（开源仓库）**：`$FITBENCH/`（github.com/newdeme/llm-fitbench）
+  - `scripts/` — bench.py（Ollama）/ bench_lms.py（LM Studio, OpenAI 兼容）五子命令；quality_v2.py（76 题场景化，`--no-think` 支持）
   - `skill/` — **本 skill 唯一正本**；`~/.agents/skills/local-model-bench` 为指向此目录的 symlink，改动只改仓库版
   - `docs/METHODOLOGY.md` — 完整方法论（七偏差控制、七定律、失败甄别）。**做全量评测前先读它**
 - **私有数据层（本机台账，永不进 git）**：`$LAB/`
@@ -36,7 +38,7 @@ description: 本地开源模型与 Apple Silicon Mac 适配性的实证评测与
 4. **P2 阶梯**（~10 min）：`... ladder -m 模型 --ctxs 2048 8192 32768`
    看 TTFT 在用户真实工作长度是否可接受（>5 min 即长文不可用）。
 5. **P5 质量筛查**（~10 min）：`... quality -m 模型 --limit 12`（24 题通用快筛）。
-   转正候选或需深度对比时 → 场景化 v2（72 题六场景，出题原则与操作见 **references/quality-v2.md**，出题前必读 METHODOLOGY.md §5 七定律）。
+   转正候选或需深度对比时 → 场景化 v2（76 题六场景，出题原则与操作见 **references/quality-v2.md**，出题前必读 METHODOLOGY.md §5 七定律）。
 6. **对比裁决**：读 RESULTS.md，新数据与 §1 场景选型表对比，更新推荐或淘汰。
 
 初筛有亮点（更快/窗口更长/质量更好）→ 补全量：P3 去热排名（`athermal`，多模型打乱×3组，两引擎均支持）、P4 极限窗口（`stress --ctxs 65536 131072`，先报 ETA；LMS 须先 `lms load --context-length N` 显式加载，JIT 默认 8K 窗超载会静默空流）。

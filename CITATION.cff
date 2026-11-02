@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use llm-fitbench, please cite it as below."
+title: llm-fitbench
+authors:
+  - family-names: Chang
+    given-names: Sheng
+    orcid: "https://orcid.org/0000-0002-4935-2766"
+    website: "https://github.com/newdeme"
+type: software
+repository-code: "https://github.com/newdeme/llm-fitbench"
+license: Apache-2.0
+abstract: >-
+  A reproducible toolkit for measuring whether a local LLM is actually fit for
+  your machine and your work: throughput, memory and quality probes for
+  Ollama and LM Studio, with deterministic scoring.
