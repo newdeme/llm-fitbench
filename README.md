@@ -2,6 +2,11 @@
 
 > 本地大模型"适配性"实证评测工具箱——用一套可复现的流程，回答"**这个模型在我的电脑上、对我的工作，到底行不行**"。
 
+[![CI](https://github.com/newdeme/llm-fitbench/actions/workflows/ci.yml/badge.svg)](https://github.com/newdeme/llm-fitbench/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](CONTRIBUTING.md)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/newdeme/llm-fitbench?include_prereleases)](https://github.com/newdeme/llm-fitbench/releases)
+
 [English](README.en.md) | 中文
 
 ## 适合谁

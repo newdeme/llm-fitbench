@@ -2,6 +2,21 @@
 
 本项目的所有显著变更都记录在此文件中。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.4.1] - 2026-11-07
+
+First public release. No functional change to the scripts.
+
+### Added
+
+- `NOTICE`: third-party attribution and MIT notice for the GSM8K subset in `examples/gsm8k-math/`.
+- README badges (CI / Python / License / Release); `version` and `date-released` in `CITATION.cff`.
+- Governance files from the release-prep pass: `CONTRIBUTING.md`, `SECURITY.md`, `CITATION.cff`, issue template.
+
+### Changed
+
+- Private paths in docs generalised to environment variables; `docs/EVAL-LOG.md` is now a format template (real run logs live in a private data layer); CI branch filter fixed.
+- Git history rewritten to GitHub noreply author identity; tags v0.1.0–v0.4.0 point at the rewritten commits.
+
 ## [0.4.0] - 2026-08-23
 
 ### Added

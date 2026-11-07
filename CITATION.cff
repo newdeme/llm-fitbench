@@ -7,6 +7,8 @@ authors:
     orcid: "https://orcid.org/0000-0002-4935-2766"
     website: "https://github.com/newdeme"
 type: software
+version: 0.4.1
+date-released: 2026-11-07
 repository-code: "https://github.com/newdeme/llm-fitbench"
 license: Apache-2.0
 abstract: >-

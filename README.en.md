@@ -2,6 +2,11 @@
 
 > An evidence-based toolbox for benchmarking **local LLMs on your own machine** — answering "does this model actually fit my hardware and my work?"
 
+[![CI](https://github.com/newdeme/llm-fitbench/actions/workflows/ci.yml/badge.svg)](https://github.com/newdeme/llm-fitbench/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](CONTRIBUTING.md)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/newdeme/llm-fitbench?include_prereleases)](https://github.com/newdeme/llm-fitbench/releases)
+
 English | [中文](README.md)
 
 ## Who is this for
