@@ -2,6 +2,12 @@
 
 本项目的所有显著变更都记录在此文件中。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.4.2] - Unreleased
+
+### Fixed
+
+- Clarify that the GSM8K example bank contains 12 questions selected from the first 300 rows of the source test split; the bank does not contain all 300 rows.
+
 ## [0.4.1] - 2026-11-07
 
 First public release. No functional change to the scripts.
