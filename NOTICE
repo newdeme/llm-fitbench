@@ -5,8 +5,8 @@ Licensed under the Apache License, Version 2.0 (see LICENSE).
 
 Third-party material
 --------------------
-examples/gsm8k-math/bank.json contains a subset (first 300 rows of the `test`
-split, `main` config) of GSM8K, redistributed under the MIT License.
+examples/gsm8k-math/bank.json contains 12 questions selected from the first
+300 rows of the GSM8K `test` split, `main` config, redistributed under the MIT License.
 
   GSM8K -- Copyright (c) 2021 OpenAI
   Source:  https://huggingface.co/datasets/openai/gsm8k
