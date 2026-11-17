@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "llm-fitbench · 本地模型适配性评测架构",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/newdeme/llm-fitbench",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "05eb8caaba5b31e8a60b975347be2742e9a2c3b1"
+    },
+    "viewBox": [900, 560],
+    "views": [
+      {"id": "performance", "label": "性能与窗口", "focus": ["entry", "performance", "engines", "results"], "note": "两种引擎各有性能入口；bench_lms.py 复用 bench.py 的题库、判分、提示构造与存档，不是统一调度服务。"},
+      {"id": "scenario-quality", "label": "场景化质量", "focus": ["banks", "quality", "engines", "results"], "note": "quality_v2.py 独立加载题库、调用引擎、确定性判分，输出场景剖面与置信区间。"},
+      {"id": "governance", "label": "方法与数据边界", "focus": ["method", "entry", "performance", "quality", "results", "review"], "note": "公开仓保存工具和方法，结果建议仓外保存；综合裁决由人或 Agent 按方法论完成，并非自动报告系统。"}
+    ]
+  },
+  "components": [
+    {"id": "method", "type": "security", "label": "方法论与偏差控制", "sublabel": "METHODOLOGY.md · 测前约束", "pos": [270, 20], "size": [240, 72], "sources": [{"path": "docs/METHODOLOGY.md", "line": 17, "end_line": 42, "label": "偏差控制与评测步骤"}]},
+    {"id": "entry", "type": "frontend", "label": "用户 / Agent 入口", "sublabel": "命令行 · skill/ 指引", "pos": [20, 150], "size": [170, 76], "sources": [{"path": "skill/SKILL.md", "line": 17, "end_line": 44, "label": "入口、数据外置与执行指引"}, {"path": "README.md", "line": 29, "end_line": 47, "label": "命令行用法"}]},
+    {"id": "performance", "type": "backend", "label": "性能与通用质量评测", "sublabel": "bench.py · bench_lms.py", "pos": [270, 150], "size": [240, 76], "sources": [{"path": "scripts/bench.py", "line": 88, "end_line": 196, "label": "吞吐、阶梯、去热与窗口"}, {"path": "scripts/bench_lms.py", "line": 14, "end_line": 18, "label": "复用 bench 公共函数"}, {"path": "scripts/bench.py", "line": 198, "end_line": 264, "label": "内置通用题库与质量快筛"}]},
+    {"id": "engines", "type": "external", "label": "本地推理引擎", "sublabel": "Ollama :11434 / LM Studio :1234", "pos": [600, 150], "size": [270, 76], "sources": [{"path": "scripts/bench.py", "line": 55, "end_line": 73, "label": "Ollama 请求与服务端计量"}, {"path": "scripts/bench_lms.py", "line": 18, "end_line": 71, "label": "LM Studio 流式请求与计量"}, {"path": "scripts/quality_v2.py", "line": 71, "end_line": 101, "label": "场景评测的独立引擎适配"}]},
+    {"id": "banks", "type": "database", "label": "外置场景题库", "sublabel": "examples/ · --bank 自定义文件", "pos": [600, 460], "size": [270, 76], "sources": [{"path": "examples/question-bank-template.md", "line": 1, "label": "题库格式与判分指南"}, {"path": "examples/remote-sensing-researcher/bank.json", "line": 1, "label": "遥感科研示例"}, {"path": "examples/gsm8k-math/bank.json", "line": 1, "label": "分层数学示例"}]},
+    {"id": "quality", "type": "backend", "label": "场景化质量评测", "sublabel": "quality_v2.py · 独立加载与判分", "pos": [600, 310], "size": [270, 76], "sources": [{"path": "scripts/quality_v2.py", "line": 36, "end_line": 69, "label": "题库加载与长文事实植入"}, {"path": "scripts/quality_v2.py", "line": 103, "end_line": 124, "label": "确定性判分与置信区间"}, {"path": "scripts/quality_v2.py", "line": 127, "end_line": 182, "label": "复测、场景汇总与存档"}]},
+    {"id": "results", "type": "database", "label": "本地结果文件", "sublabel": "BENCH_DATA_DIR · 默认 bench_results/", "pos": [270, 310], "size": [240, 76], "sources": [{"path": "scripts/bench.py", "line": 11, "end_line": 15, "label": "结果目录选择"}, {"path": "scripts/bench.py", "line": 79, "end_line": 82, "label": "性能与通用质量 JSON 存档"}, {"path": "scripts/quality_v2.py", "line": 168, "end_line": 182, "label": "场景质量 JSON 与终端汇总"}]},
+    {"id": "review", "type": "external", "label": "人工 / Agent 综合裁决", "sublabel": "速度 × 质量 × 窗口 · 私有台账", "pos": [270, 460], "size": [240, 70], "sources": [{"path": "docs/METHODOLOGY.md", "line": 82, "end_line": 103, "label": "裁决维度与结果档案建议"}, {"path": "docs/EVAL-LOG.md", "line": 1, "end_line": 16, "label": "公开模板与私有记录分离"}]}
+  ],
+  "connections": [
+    {"id": "method-to-performance", "from": "method", "to": "performance", "label": "执行约束", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 24},
+    {"id": "entry-to-performance", "from": "entry", "to": "performance", "label": "选用脚本", "variant": "emphasis"},
+    {"id": "performance-to-engines", "from": "performance", "to": "engines", "label": "本地请求与计量", "variant": "emphasis"},
+    {"id": "banks-to-quality", "from": "banks", "to": "quality", "label": "--bank 加载", "variant": "emphasis", "fromSide": "top", "toSide": "bottom"},
+    {"id": "quality-to-engines", "from": "quality", "to": "engines", "label": "独立请求适配", "fromSide": "top", "toSide": "bottom"},
+    {"id": "performance-to-results", "from": "performance", "to": "results", "label": "保存测量结果", "fromSide": "bottom", "toSide": "top", "labelDy": 24},
+    {"id": "quality-to-results", "from": "quality", "to": "results", "label": "保存场景得分", "variant": "emphasis"},
+    {"id": "results-to-review", "from": "results", "to": "review", "label": "人工审阅", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 24}
+  ],
+  "cards": [
+    {"dot": "emerald", "title": "质量保障", "items": ["编译与单元测试，无需推理引擎。"]},
+    {"dot": "amber", "title": "公开与私有分离", "items": ["私有结果仓外保存；扩展能力见路线图。"]}
+  ]
+}

@@ -46,7 +46,7 @@ Results are written to `bench_results/` (or the directory in `BENCH_DATA_DIR`).
 
 ## Core ideas
 
-1. **Six bias controls** — cold-load, nominal-vs-actual length, prompt-cache hits, thermal throttling, failure-type confusion, grader bugs. Each backed by real failures, all encoded in the tools.
+1. **Eight bias controls** — cold-load, nominal-vs-actual length, prompt-cache hits, thermal throttling, failure-type confusion, grader bugs, resident-model interference, and measurement conventions. Each backed by real failures, all encoded in the tools.
 2. **Seven laws of question-bank construction** — validity (your workload) over difficulty; private-material questions are structurally immune to data contamination; the grader is the biggest error source; scenario profiles over total scores; hallucination probes as a separate axis; thinking-budget starvation is a cost, not noise.
 3. **Failure triage** — HTTP 400 ≠ OOM ≠ silent truncation. Different failures, different remedies.
 
@@ -56,7 +56,7 @@ See [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 Generic benchmarks can't tell whether a model fits *you*. `scripts/quality_v2.py` evaluates your real workload via **external question-bank JSON files** (`--bank`); the script itself ships only a 6-question neutral demo bank.
 
-A complete example bank is included: **72 questions across six scenarios for a remote-sensing researcher** (academic writing fixes / DL code knowledge / domain facts + hallucination probes / terminology translation / experiment number analysis / long-doc fact retrieval), all deterministically graded.
+Two example banks are included: **76 questions for a remote-sensing researcher** (six workload scenarios plus a general-control category, including long-document fact retrieval with varied fact positions), and **12 stratified GSM8K math questions** (MIT-licensed subset). All are deterministically graded.
 
 **Bring your own bank**: it's just a JSON file — no Python knowledge required. Template: [examples/question-bank-template.md](examples/question-bank-template.md).
 
@@ -74,9 +74,16 @@ python3 scripts/quality_v2.py ollama -m model --bank my-bank.json --limit 4
 - Everything runs locally against your Ollama/LM Studio APIs; no telemetry, no uploads.
 - Keep personal experiment data out of the repo via `BENCH_DATA_DIR`.
 
+## Architecture and maintenance
+
+- [Interactive architecture diagram](docs/diagrams/system-overview.html) (Chinese; download and open in a browser — GitHub does not run HTML files)
+- [Architecture, source mapping, and reproduction](docs/ARCHITECTURE.md) (Chinese) · [Editable specification](docs/diagrams/system-overview.json)
+
+The diagram distinguishes performance runners, independent scenario-quality evaluation, local engines, and private result storage. Update the specification, generated HTML, and architecture notes together when these relationships change. Never include personal results or secrets in the diagram.
+
 ## Roadmap
 
-- [ ] External question-bank loading (--bank path.json)
+- [x] External question-bank loading (--bank path.json, v0.2.0)
 - [ ] More engines (llama.cpp server / vLLM)
 - [ ] Automated RESULTS.md report generation
 

@@ -78,6 +78,13 @@ python3 scripts/quality_v2.py ollama -m 模型 --bank my-bank.json --limit 4
 - 无遥测、无外部上传；评测结果默认写本地目录；
 - 建议把私有结果目录与方法论分开维护（`BENCH_DATA_DIR` 外置），不要把个人实验数据提交进任何仓库。
 
+## 架构与维护
+
+- [交互架构图](docs/diagrams/system-overview.html)（下载后用浏览器打开；GitHub 不直接运行 HTML）
+- [架构说明与源码对应](docs/ARCHITECTURE.md) · [可维护图源](docs/diagrams/system-overview.json)
+
+图按代码证据区分性能评测、独立场景质量评测、本地引擎与私有结果边界。结构变化时，同步更新图源、生成页面和架构说明；个人结果与机密资料不随图入仓。
+
 ## 项目结构
 
 ```

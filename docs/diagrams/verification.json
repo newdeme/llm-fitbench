@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "checked_on": "2026-11-17",
+  "repository": "https://github.com/newdeme/llm-fitbench",
+  "code_revision": "05eb8caaba5b31e8a60b975347be2742e9a2c3b1",
+  "archify_skill_version": "2.17",
+  "specification": {
+    "file": "system-overview.json",
+    "sha256": "2103773b58f128191bd3892ab7b0fb5ecfd8213e274ab7349f997cc01d39d7ad",
+    "bytes": 6157
+  },
+  "artifact": {
+    "file": "system-overview.html",
+    "sha256": "2ab1e5d5398584aeb385165c1728668a601028522f27467c77d64f7470fbf064",
+    "bytes": 810857
+  },
+  "validation": {
+    "profile": "showcase",
+    "status": "pass",
+    "checks_passed": 9,
+    "checks_total": 9,
+    "errors": 0,
+    "warnings": 0,
+    "proper_crossings": 0,
+    "ambiguous_corridors": 0
+  },
+  "repository_evidence": {
+    "verified": true,
+    "components": 8,
+    "connections": 8,
+    "source_references": 20,
+    "source_line_ranges_checked": true
+  },
+  "browser_evidence": {
+    "kind": "automated-browser",
+    "status": "passed",
+    "read_state": "read",
+    "motion": "still",
+    "containment": [
+      {"viewport": "1440x900", "theme": "light", "overflow_x": false, "overflow_y": false},
+      {"viewport": "1600x1000", "theme": "light", "overflow_x": false, "overflow_y": false},
+      {"viewport": "1920x1080", "theme": "light", "overflow_x": false, "overflow_y": false},
+      {"viewport": "2048x1320", "theme": "light", "overflow_x": false, "overflow_y": false}
+    ],
+    "screenshots": ["1440x900 light", "1440x900 dark", "2048x1320 light", "2048x1320 dark"],
+    "minimum_projected_context_text_px": 9,
+    "raw_evidence_location": "Local-only temporary evidence; regenerate with visual-check. Absolute author paths are intentionally excluded."
+  },
+  "visual_review": {
+    "status": "passed",
+    "kind": "image-capable-review",
+    "inspected": ["1440x900 dark", "2048x1320 light"],
+    "findings": "No visible clipping, node overflow, crossed routes, or label occlusion. Overall composition is deliverable.",
+    "caveat": "Secondary source badges and toolbar labels remain small; use zoom or guided focus for detailed reading."
+  },
+  "scope": {
+    "python_ast_parse": "passed for three existing scripts",
+    "unit_tests": "not run in this documentation-only change",
+    "model_evaluation": "not run",
+    "interaction_test": "automated browser evidence does not establish every viewer interaction or export",
+    "commit": "not created",
+    "push": "not performed"
+  }
+}
